@@ -6,6 +6,7 @@ import Booking from './pages/Booking';
 import MyBookings from './pages/MyBookings';
 import Profile from './pages/Profile'; // Import Profile
 import BottomNav from './components/BottomNav'; // Import BottomNav
+import ScrollToTop from './components/ScrollToTop';
 
 // Layout Khusus User (Ada Menu Bawahnya)
 const AppLayout = () => {
@@ -51,7 +52,7 @@ function App() {
     <Router>
       <AuthProvider>
         <Routes>
-          
+          <ScrollToTop />
           {/* Halaman Login Khusus (Redirect) */}
           <Route path="/login" element={
             <GuestRoute>

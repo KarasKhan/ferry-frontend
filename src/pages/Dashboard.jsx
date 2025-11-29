@@ -1,28 +1,28 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react'; // <--- Tambah useRef
 import { useNavigate } from 'react-router-dom';
-// import Navbar from '../components/Navbar';
-import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import Navbar from '../components/Navbar'; // (Ini boleh dihapus jika sudah pakai layout, tapi dibiarkan aman)
+import api from '../services/api';
 import { MapPin, Calendar, Search, Ship, ArrowRight, ArrowLeftRight } from 'lucide-react';
 
 export default function Dashboard() {
     const { user } = useAuth();
     const navigate = useNavigate();
     
-    // State Form
+    // REF untuk Auto Scroll
+    const resultsRef = useRef(null); 
+
     const [ports, setPorts] = useState([]);
     const [origin, setOrigin] = useState('');
     const [destination, setDestination] = useState('');
     const [date, setDate] = useState('');
     const [returnDate, setReturnDate] = useState('');
-    const [isRoundTrip, setIsRoundTrip] = useState(false); // Checkbox PP
+    const [isRoundTrip, setIsRoundTrip] = useState(false);
     
-    // State Hasil Pencarian
     const [schedules, setSchedules] = useState({ departures: [], returns: [] });
     const [loading, setLoading] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
 
-    // State Pilihan User (Untuk dikirim ke Booking)
     const [selectedDeparture, setSelectedDeparture] = useState(null);
     const [selectedReturn, setSelectedReturn] = useState(null);
 
@@ -34,8 +34,6 @@ export default function Dashboard() {
         e.preventDefault();
         setLoading(true);
         setHasSearched(true);
-        
-        // Reset pilihan sebelumnya
         setSelectedDeparture(null);
         setSelectedReturn(null);
 
@@ -45,14 +43,17 @@ export default function Dashboard() {
                 destination_port_id: destination,
                 date: date
             };
-            
-            // Kalau PP, kirim tanggal pulang
-            if (isRoundTrip && returnDate) {
-                params.return_date = returnDate;
-            }
+            if (isRoundTrip && returnDate) params.return_date = returnDate;
 
             const response = await api.get('/schedules', { params });
-            setSchedules(response.data.data); // Isinya { departures: [], returns: [] }
+            setSchedules(response.data.data);
+
+            // --- AUTO SCROLL LOGIC ---
+            // Tunggu sebentar (100ms) agar elemen dirender dulu, baru scroll
+            setTimeout(() => {
+                resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+
         } catch (error) {
             console.error(error);
         } finally {
@@ -65,30 +66,18 @@ export default function Dashboard() {
         if (isRoundTrip && !selectedReturn) return alert("Pilih jadwal kepulangan dulu!");
 
         const selectedSchedules = [selectedDeparture];
-        if (isRoundTrip && selectedReturn) {
-            selectedSchedules.push(selectedReturn);
-        }
+        if (isRoundTrip && selectedReturn) selectedSchedules.push(selectedReturn);
 
-        // --- CEGATAN LOGIN ---
         if (!user) {
-            // Jika Guest: Lempar ke Login (Profile), tapi TITIPKAN data jadwal di 'state'
-            // Kita arahkan ke '/profile' karena di sana sekarang ada Form Login
-            navigate('/profile', { 
-                state: { 
-                    from: '/booking', 
-                    schedules: selectedSchedules 
-                } 
-            });
+            navigate('/profile', { state: { from: '/booking', schedules: selectedSchedules } });
         } else {
-            // Jika User: Langsung ke Booking
             navigate('/booking', { state: { schedules: selectedSchedules } });
         }
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20">
-            {/* <Navbar /> */}
-
+        <div className="min-h-screen bg-gray-50 pb-32">
+            
             {/* HERO SECTION */}
             <div className="bg-blue-600 px-4 pt-10 pb-32 rounded-b-[2.5rem] shadow-lg">
                 <div className="max-w-5xl mx-auto text-center text-white mb-8">
@@ -96,110 +85,66 @@ export default function Dashboard() {
                     <p className="opacity-90">Pesan tiket kapal feri dengan mudah, cepat, dan aman.</p>
                 </div>
 
-                {/* SEARCH CARD */}
                 <div className="max-w-5xl mx-auto bg-white rounded-2xl p-6 shadow-xl">
                     <form onSubmit={handleSearch} className="space-y-6">
                         
-                        {/* Toggle Round Trip (Pill Style) */}
                         <div className="flex justify-center">
                             <label className="inline-flex items-center cursor-pointer bg-gray-100 p-1 rounded-full shadow-inner">
-                                <span className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all ${!isRoundTrip ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500'}`} onClick={() => setIsRoundTrip(false)}>
+                                {/* Tombol dengan efek klik (active:scale-95) */}
+                                <span className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all transform active:scale-95 duration-100 ${!isRoundTrip ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500'}`} onClick={() => setIsRoundTrip(false)}>
                                     Sekali Jalan
                                 </span>
-                                <span className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all ${isRoundTrip ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500'}`} onClick={() => setIsRoundTrip(true)}>
+                                <span className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all transform active:scale-95 duration-100 ${isRoundTrip ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500'}`} onClick={() => setIsRoundTrip(true)}>
                                     Pulang Pergi
                                 </span>
                             </label>
                         </div>
 
-                        {/* Area Input Utama (Asal & Tujuan) */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4 relative">
-                            
-                            {/* Input Asal */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative">
                             <div className="relative group">
                                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 ml-1">Dari Pelabuhan</label>
                                 <div className="relative flex items-center">
-                                    <div className="absolute left-4 text-blue-500">
-                                        <Ship size={24} />
-                                    </div>
-                                    <select 
-                                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-transparent hover:bg-white hover:border-blue-100 focus:bg-white focus:border-blue-500 rounded-xl outline-none font-semibold text-gray-700 transition-all appearance-none cursor-pointer"
-                                        value={origin} 
-                                        onChange={(e) => setOrigin(e.target.value)} 
-                                        required
-                                    >
+                                    <div className="absolute left-4 text-blue-500"><Ship size={24} /></div>
+                                    <select className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-transparent hover:bg-white hover:border-blue-100 focus:bg-white focus:border-blue-500 rounded-xl outline-none font-semibold text-gray-700 transition-all appearance-none cursor-pointer" value={origin} onChange={(e) => setOrigin(e.target.value)} required>
                                         <option value="">Pilih Asal</option>
                                         {ports.map(p => <option key={p.id} value={p.id}>{p.name} ({p.code})</option>)}
                                     </select>
-                                    <div className="absolute right-4 pointer-events-none text-gray-400">
-                                        <ArrowRight size={16} />
-                                    </div>
+                                    <div className="absolute right-4 pointer-events-none text-gray-400"><ArrowRight size={16} /></div>
                                 </div>
                             </div>
 
-                            {/* Icon Panah Tengah (Hiasan Desktop) */}
-                            <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 bg-white border border-gray-100 p-2 rounded-full shadow-md text-gray-400">
-                                <ArrowRight size={20} />
-                            </div>
-
-                            {/* Input Tujuan */}
                             <div className="relative group">
                                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 ml-1">Ke Pelabuhan</label>
                                 <div className="relative flex items-center">
-                                    <div className="absolute left-4 text-orange-500">
-                                        <MapPin size={24} />
-                                    </div>
-                                    <select 
-                                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-transparent hover:bg-white hover:border-orange-100 focus:bg-white focus:border-orange-500 rounded-xl outline-none font-semibold text-gray-700 transition-all appearance-none cursor-pointer"
-                                        value={destination} 
-                                        onChange={(e) => setDestination(e.target.value)} 
-                                        required
-                                    >
+                                    <div className="absolute left-4 text-orange-500"><MapPin size={24} /></div>
+                                    <select className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-transparent hover:bg-white hover:border-orange-100 focus:bg-white focus:border-orange-500 rounded-xl outline-none font-semibold text-gray-700 transition-all appearance-none cursor-pointer" value={destination} onChange={(e) => setDestination(e.target.value)} required>
                                         <option value="">Pilih Tujuan</option>
                                         {ports.map(p => <option key={p.id} value={p.id}>{p.name} ({p.code})</option>)}
                                     </select>
-                                    <div className="absolute right-4 pointer-events-none text-gray-400">
-                                        <ArrowRight size={16} />
-                                    </div>
+                                    <div className="absolute right-4 pointer-events-none text-gray-400"><ArrowRight size={16} /></div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Area Tanggal */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 ml-1">Tanggal Pergi</label>
                                 <div className="relative flex items-center">
                                     <Calendar className="absolute left-4 text-gray-400" size={20} />
-                                    <input 
-                                        type="date" 
-                                        className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none font-medium text-gray-700"
-                                        value={date} 
-                                        onChange={(e) => setDate(e.target.value)} 
-                                        required 
-                                    />
+                                    <input type="date" className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none font-medium text-gray-700" value={date} onChange={(e) => setDate(e.target.value)} required />
                                 </div>
                             </div>
-                            
-                            {/* Tanggal Pulang (Muncul Smooth) */}
                             <div className={`transition-all duration-300 ${isRoundTrip ? 'opacity-100' : 'opacity-50 pointer-events-none grayscale'}`}>
                                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 ml-1">Tanggal Pulang</label>
                                 <div className="relative flex items-center">
                                     <Calendar className="absolute left-4 text-gray-400" size={20} />
-                                    <input 
-                                        type="date" 
-                                        className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none font-medium text-gray-700"
-                                        value={returnDate} 
-                                        onChange={(e) => setReturnDate(e.target.value)} 
-                                        required={isRoundTrip} // Wajib hanya kalau PP
-                                        disabled={!isRoundTrip}
-                                    />
+                                    <input type="date" className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none font-medium text-gray-700" value={returnDate} onChange={(e) => setReturnDate(e.target.value)} required={isRoundTrip} disabled={!isRoundTrip}/>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Tombol Cari Besar */}
-                        <button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-lg font-bold py-4 rounded-xl shadow-lg shadow-blue-200 transform transition-transform hover:scale-[1.01] flex items-center justify-center gap-2">
+                        {/* TOMBOL CARI DENGAN EFEK KENYAL (active:scale-95) */}
+                        <button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-lg font-bold py-4 rounded-xl shadow-lg shadow-blue-200 transform transition-transform active:scale-95 duration-100 flex items-center justify-center gap-2">
                             <Search size={22} strokeWidth={3} />
                             Cari Jadwal Kapal
                         </button>
@@ -208,8 +153,8 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* HASIL PENCARIAN */}
-            <div className="max-w-6xl mx-auto px-4 -mt-10 grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* HASIL PENCARIAN (Pasang REF di sini) */}
+            <div ref={resultsRef} className="max-w-6xl mx-auto px-4 -mt-10 grid grid-cols-1 lg:grid-cols-2 gap-8 scroll-mt-24">
                 
                 {/* LIST PERGI */}
                 {(hasSearched || loading) && (
@@ -224,7 +169,8 @@ export default function Dashboard() {
                             <div 
                                 key={item.id} 
                                 onClick={() => setSelectedDeparture(item)}
-                                className={`bg-white p-4 rounded-xl shadow-md border-2 cursor-pointer transition-all ${selectedDeparture?.id === item.id ? 'border-blue-500 ring-2 ring-blue-100' : 'border-transparent hover:border-gray-200'}`}
+                                // Efek Kenyal saat pilih jadwal
+                                className={`bg-white p-4 rounded-xl shadow-md border-2 cursor-pointer transition-all transform active:scale-95 duration-100 ${selectedDeparture?.id === item.id ? 'border-blue-500 ring-2 ring-blue-100' : 'border-transparent hover:border-gray-200'}`}
                             >
                                 <div className="flex justify-between items-center">
                                     <div className="flex items-center gap-3">
@@ -244,7 +190,7 @@ export default function Dashboard() {
                     </div>
                 )}
 
-                {/* LIST PULANG (HANYA MUNCUL KALAU PP) */}
+                {/* LIST PULANG */}
                 {isRoundTrip && (hasSearched || loading) && (
                     <div className="space-y-4">
                         <h3 className="font-bold text-gray-700 flex items-center gap-2 bg-white p-3 rounded-lg shadow-sm">
@@ -257,7 +203,7 @@ export default function Dashboard() {
                             <div 
                                 key={item.id} 
                                 onClick={() => setSelectedReturn(item)}
-                                className={`bg-white p-4 rounded-xl shadow-md border-2 cursor-pointer transition-all ${selectedReturn?.id === item.id ? 'border-orange-500 ring-2 ring-orange-100' : 'border-transparent hover:border-gray-200'}`}
+                                className={`bg-white p-4 rounded-xl shadow-md border-2 cursor-pointer transition-all transform active:scale-95 duration-100 ${selectedReturn?.id === item.id ? 'border-orange-500 ring-2 ring-orange-100' : 'border-transparent hover:border-gray-200'}`}
                             >
                                 <div className="flex justify-between items-center">
                                     <div className="flex items-center gap-3">
@@ -278,33 +224,23 @@ export default function Dashboard() {
                 )}
             </div>
 
-            {/* FLOATING ACTION BUTTON (LANJUTKAN) */}
-            {/* FLOATING ACTION BAR (POSISI DI ATAS MENU BAWAH) */}
             {selectedDeparture && (!isRoundTrip || (isRoundTrip && selectedReturn)) && (
                 <div className="fixed bottom-24 left-4 right-4 z-40">
                     <div className="bg-gray-800 text-white p-4 rounded-2xl shadow-2xl shadow-blue-900/20 flex justify-between items-center transform transition-all animate-bounce-in">
-                        
-                        {/* Info Kiri */}
                         <div>
-                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">
-                                Status Pemesanan
-                            </p>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Status Pemesanan</p>
                             <div className="flex items-center gap-2">
                                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                                <p className="font-bold text-base">
-                                    {isRoundTrip ? 'Siap Lanjut (PP)' : 'Siap Lanjut'}
-                                </p>
+                                <p className="font-bold text-base">{isRoundTrip ? 'Siap Lanjut (PP)' : 'Siap Lanjut'}</p>
                             </div>
                         </div>
-
-                        {/* Tombol Kanan */}
+                        {/* Tombol Lanjut dengan efek kenyal */}
                         <button 
                             onClick={proceedToBooking}
-                            className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-blue-900/50 active:scale-95"
+                            className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-xl transition-transform transform active:scale-95 flex items-center gap-2 shadow-lg shadow-blue-900/50"
                         >
                             Pesan Sekarang <ArrowRight size={18} />
                         </button>
-                        
                     </div>
                 </div>
             )}

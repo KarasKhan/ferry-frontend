@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Ticket, User, Search } from 'lucide-react';
+import { Ticket, User, Search } from 'lucide-react';
 
 export default function BottomNav() {
     const location = useLocation();
@@ -16,7 +16,11 @@ export default function BottomNav() {
                 <div className="flex justify-between items-end max-w-md mx-auto h-16 pb-2">
                     
                     {/* MENU KIRI: TIKET SAYA */}
-                    <Link to="/my-bookings" className="flex flex-col items-center gap-1 w-16 group">
+                    {/* Tambahan: active:scale-95 agar ikon mengecil sedikit saat ditekan */}
+                    <Link 
+                        to="/my-bookings" 
+                        className="flex flex-col items-center gap-1 w-16 group transition-transform active:scale-95 duration-200"
+                    >
                         <div className={`transition-colors duration-300 ${isActive('/my-bookings') ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'}`}>
                             <Ticket size={24} strokeWidth={isActive('/my-bookings') ? 2.5 : 2} />
                         </div>
@@ -28,7 +32,8 @@ export default function BottomNav() {
                     {/* MENU TENGAH: BELI (FLOATING) */}
                     <div className="relative -top-6">
                         <Link to="/" className="flex flex-col items-center">
-                            <div className="w-16 h-16 bg-blue-600 rounded-full shadow-lg shadow-blue-300 flex items-center justify-center text-white transform transition-transform hover:scale-110 active:scale-95 border-4 border-gray-50">
+                            {/* Tambahan: active:scale-90 (lebih dalam) agar berasa 'klik' banget */}
+                            <div className="w-16 h-16 bg-blue-600 rounded-full shadow-lg shadow-blue-300 flex items-center justify-center text-white transform transition-transform hover:scale-110 active:scale-90 duration-200 border-4 border-gray-50">
                                 <Search size={28} strokeWidth={3} />
                             </div>
                             <span className="text-[10px] font-bold text-blue-600 mt-1">
@@ -38,7 +43,11 @@ export default function BottomNav() {
                     </div>
 
                     {/* MENU KANAN: AKUN */}
-                    <Link to="/profile" className="flex flex-col items-center gap-1 w-16 group">
+                    {/* Tambahan: active:scale-95 */}
+                    <Link 
+                        to="/profile" 
+                        className="flex flex-col items-center gap-1 w-16 group transition-transform active:scale-95 duration-200"
+                    >
                         <div className={`transition-colors duration-300 ${isActive('/profile') ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'}`}>
                             <User size={24} strokeWidth={isActive('/profile') ? 2.5 : 2} />
                         </div>
