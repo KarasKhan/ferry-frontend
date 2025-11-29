@@ -4,35 +4,30 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Booking from './pages/Booking';
 import MyBookings from './pages/MyBookings';
-import Profile from './pages/Profile'; // Import Profile
-import BottomNav from './components/BottomNav'; // Import BottomNav
-import ScrollToTop from './components/ScrollToTop';
+import Profile from './pages/Profile';
+import BottomNav from './components/BottomNav';
+import ScrollToTop from './components/ScrollToTop'; // <--- Import ini
 
-// Layout Khusus User (Ada Menu Bawahnya)
+// Layout Khusus User
 const AppLayout = () => {
   return (
     <div className="bg-gray-50 min-h-screen">
-       {/* Area Konten Halaman */}
-       <div className="pb-24"> {/* Kasih padding bawah biar konten gak ketutup menu */}
+       <div className="pb-24"> 
           <Outlet /> 
        </div>
-       
-       {/* Menu Bawah Melayang */}
        <BottomNav />
     </div>
   );
 };
 
-// Proteksi Halaman (Wajib Login)
+// Proteksi Halaman
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  const location = useLocation(); // <--- Ambil lokasi saat ini
+  const location = useLocation();
 
   if (loading) return <div className="p-10 text-center">Loading...</div>;
   
   if (!user) {
-      // replace={true} adalah KUNCINYA. 
-      // Ini menghapus jejak halaman terlarang dari history browser.
       return <Navigate to="/profile" state={{ from: location.pathname }} replace />;
   }
 
@@ -50,41 +45,33 @@ const GuestRoute = ({ children }) => {
 function App() {
   return (
     <Router>
+      {/* --- PERBAIKAN: ScrollToTop HARUS DI SINI (Di luar Routes) --- */}
+      <ScrollToTop /> 
+      
       <AuthProvider>
         <Routes>
-          <ScrollToTop />
-          {/* Halaman Login Khusus (Redirect) */}
           <Route path="/login" element={
             <GuestRoute>
               <Login />
             </GuestRoute>
           } />
 
-          {/* HALAMAN UTAMA (AppLayout) */}
-          <Route element={<AppLayout />}> {/* <--- HAPUS ProtectedRoute DI SINI */}
-              
-              {/* Dashboard: PUBLIC (Semua bisa akses) */}
+          <Route element={<AppLayout />}>
               <Route path="/" element={<Dashboard />} />
-              
-              {/* Profile: PUBLIC (Isinya adaptif: Form Login / Data Diri) */}
               <Route path="/profile" element={<Profile />} />
-
-              {/* MyBookings: PROTECTED (Hanya User Login) */}
+              
               <Route path="/my-bookings" element={
                   <ProtectedRoute>
                       <MyBookings />
                   </ProtectedRoute>
               } />
               
-              {/* Booking: PROTECTED (Hanya User Login) */}
               <Route path="/booking" element={
                   <ProtectedRoute>
                       <Booking />
                   </ProtectedRoute>
               } />
-
           </Route>
-          
         </Routes>
       </AuthProvider>
     </Router>

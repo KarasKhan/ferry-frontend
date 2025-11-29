@@ -4,21 +4,29 @@ import { Ticket, User, Search } from 'lucide-react';
 export default function BottomNav() {
     const location = useLocation();
     
-    // Fungsi untuk cek menu aktif
+    // Fungsi cek aktif
     const isActive = (path) => location.pathname === path;
+
+    // --- LOGIKA BARU: MENCEGAH TUMPUKAN HISTORY ---
+    const handleClick = (e, path) => {
+        // Jika kita sudah berada di halaman tersebut, MATIKAN fungsi kliknya
+        if (location.pathname === path) {
+            e.preventDefault(); // Jangan pindah halaman (karena sudah di situ)
+            window.scrollTo({ top: 0, behavior: 'smooth' }); // Opsional: Scroll ke atas aja
+        }
+    };
 
     return (
         <div className="fixed bottom-0 left-0 right-0 z-50">
-            {/* Background Blur effect */}
             <div className="absolute inset-0 bg-gradient-to-t from-white via-white to-transparent h-24 pointer-events-none"></div>
 
             <div className="bg-white border-t border-gray-200 pb-safe pt-2 px-6 shadow-[0_-5px_20px_rgba(0,0,0,0.05)] relative">
                 <div className="flex justify-between items-end max-w-md mx-auto h-16 pb-2">
                     
-                    {/* MENU KIRI: TIKET SAYA */}
-                    {/* Tambahan: active:scale-95 agar ikon mengecil sedikit saat ditekan */}
+                    {/* MENU KIRI: TIKET */}
                     <Link 
                         to="/my-bookings" 
+                        onClick={(e) => handleClick(e, '/my-bookings')} // <--- PASANG CEGATAN DI SINI
                         className="flex flex-col items-center gap-1 w-16 group transition-transform active:scale-95 duration-200"
                     >
                         <div className={`transition-colors duration-300 ${isActive('/my-bookings') ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'}`}>
@@ -29,10 +37,13 @@ export default function BottomNav() {
                         </span>
                     </Link>
 
-                    {/* MENU TENGAH: BELI (FLOATING) */}
+                    {/* MENU TENGAH: CARI */}
                     <div className="relative -top-6">
-                        <Link to="/" className="flex flex-col items-center">
-                            {/* Tambahan: active:scale-90 (lebih dalam) agar berasa 'klik' banget */}
+                        <Link 
+                            to="/" 
+                            onClick={(e) => handleClick(e, '/')} // <--- PASANG CEGATAN DI SINI
+                            className="flex flex-col items-center"
+                        >
                             <div className="w-16 h-16 bg-blue-600 rounded-full shadow-lg shadow-blue-300 flex items-center justify-center text-white transform transition-transform hover:scale-110 active:scale-90 duration-200 border-4 border-gray-50">
                                 <Search size={28} strokeWidth={3} />
                             </div>
@@ -43,9 +54,9 @@ export default function BottomNav() {
                     </div>
 
                     {/* MENU KANAN: AKUN */}
-                    {/* Tambahan: active:scale-95 */}
                     <Link 
                         to="/profile" 
+                        onClick={(e) => handleClick(e, '/profile')} // <--- PASANG CEGATAN DI SINI
                         className="flex flex-col items-center gap-1 w-16 group transition-transform active:scale-95 duration-200"
                     >
                         <div className={`transition-colors duration-300 ${isActive('/profile') ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'}`}>
