@@ -126,21 +126,46 @@ export default function Dashboard() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
+                        {/* Area Tanggal (Dynamic Layout) */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 transition-all">
+                            
+                            {/* Input Tanggal Pergi */}
+                            {/* Logic: Kalau RoundTrip mati, dia ambil 2 kolom (full). Kalau aktif, dia ambil 1 kolom. */}
+                            <div className={`transition-all duration-300 ease-in-out ${isRoundTrip ? 'md:col-span-1' : 'md:col-span-2'}`}>
                                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 ml-1">Tanggal Pergi</label>
-                                <div className="relative flex items-center">
-                                    <Calendar className="absolute left-4 text-gray-400" size={20} />
-                                    <input type="date" className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none font-medium text-gray-700" value={date} onChange={(e) => setDate(e.target.value)} required />
+                                <div className="relative flex items-center group">
+                                    <div className="absolute left-4 text-gray-400 group-focus-within:text-blue-500 transition-colors">
+                                        <Calendar size={20} />
+                                    </div>
+                                    <input 
+                                        type="date" 
+                                        className="w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-100 hover:border-gray-200 focus:border-blue-500 rounded-xl outline-none font-bold text-gray-700 transition-all shadow-sm"
+                                        value={date} 
+                                        onChange={(e) => setDate(e.target.value)} 
+                                        required 
+                                    />
                                 </div>
                             </div>
-                            <div className={`transition-all duration-300 ${isRoundTrip ? 'opacity-100' : 'opacity-50 pointer-events-none grayscale'}`}>
-                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 ml-1">Tanggal Pulang</label>
-                                <div className="relative flex items-center">
-                                    <Calendar className="absolute left-4 text-gray-400" size={20} />
-                                    <input type="date" className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none font-medium text-gray-700" value={returnDate} onChange={(e) => setReturnDate(e.target.value)} required={isRoundTrip} disabled={!isRoundTrip}/>
+                            
+                            {/* Input Tanggal Pulang */}
+                            {/* Logic: Hanya dirender kalau isRoundTrip = TRUE */}
+                            {isRoundTrip && (
+                                <div className="animate-in fade-in slide-in-from-left-4 duration-300">
+                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 ml-1">Tanggal Pulang</label>
+                                    <div className="relative flex items-center group">
+                                        <div className="absolute left-4 text-gray-400 group-focus-within:text-orange-500 transition-colors">
+                                            <Calendar size={20} />
+                                        </div>
+                                        <input 
+                                            type="date" 
+                                            className="w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-100 hover:border-gray-200 focus:border-orange-500 rounded-xl outline-none font-bold text-gray-700 transition-all shadow-sm"
+                                            value={returnDate} 
+                                            onChange={(e) => setReturnDate(e.target.value)} 
+                                            required={isRoundTrip} 
+                                        />
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
 
                         {/* TOMBOL CARI DENGAN EFEK KENYAL (active:scale-95) */}
