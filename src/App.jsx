@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -6,7 +6,6 @@ import Booking from './pages/Booking';
 import MyBookings from './pages/MyBookings';
 import Profile from './pages/Profile'; // Import Profile
 import BottomNav from './components/BottomNav'; // Import BottomNav
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 
 // Layout Khusus User (Ada Menu Bawahnya)
 const AppLayout = () => {
