@@ -6,6 +6,7 @@ import Booking from './pages/Booking';
 import MyBookings from './pages/MyBookings';
 import Profile from './pages/Profile'; // Import Profile
 import BottomNav from './components/BottomNav'; // Import BottomNav
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 
 // Layout Khusus User (Ada Menu Bawahnya)
 const AppLayout = () => {
