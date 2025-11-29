@@ -105,26 +105,34 @@ export default function Dashboard() {
 
                         {/* MENU DROPDOWN (Muncul saat diklik) */}
                         {isLangMenuOpen && (
-                            <div className="absolute right-0 mt-2 w-40 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                                <div className="py-1">
+                            <div className="absolute top-5 right-5 z-50">
+                                <div className="relative">
+                                    {/* Tombol Lebih Kecil & Tanpa Border Tebal */}
                                     <button 
-                                        onClick={() => { i18n.changeLanguage('id'); setIsLangMenuOpen(false); }}
-                                        className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-3 transition-colors"
+                                        onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
+                                        className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 py-1.5 rounded-full shadow-sm transition-all active:scale-95"
                                     >
-                                        <span className="text-lg">🇮🇩</span> Indonesia
+                                        <span className="text-lg leading-none filter drop-shadow-sm">{getCurrentFlag()}</span>
+                                        {/* Panah lebih kecil & transparan */}
+                                        <ChevronDown size={14} className={`opacity-80 transition-transform duration-300 ${isLangMenuOpen ? 'rotate-180' : ''}`} />
                                     </button>
-                                    <button 
-                                        onClick={() => { i18n.changeLanguage('my'); setIsLangMenuOpen(false); }}
-                                        className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-3 transition-colors border-t border-gray-50"
-                                    >
-                                        <span className="text-lg">🇲🇾</span> Melayu
-                                    </button>
-                                    <button 
-                                        onClick={() => { i18n.changeLanguage('en'); setIsLangMenuOpen(false); }}
-                                        className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-3 transition-colors border-t border-gray-50"
-                                    >
-                                        <span className="text-lg">🇺🇸</span> English
-                                    </button>
+
+                                    {/* Menu Dropdown (Tetap sama, cuma posisi dirapikan dikit) */}
+                                    {isLangMenuOpen && (
+                                        <div className="absolute right-0 mt-2 w-32 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                                            <div className="py-1">
+                                                <button onClick={() => { i18n.changeLanguage('id'); setIsLangMenuOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center gap-2">
+                                                    <span>🇮🇩</span> Indo
+                                                </button>
+                                                <button onClick={() => { i18n.changeLanguage('my'); setIsLangMenuOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center gap-2 border-t border-gray-50">
+                                                    <span>🇲🇾</span> Malay
+                                                </button>
+                                                <button onClick={() => { i18n.changeLanguage('en'); setIsLangMenuOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center gap-2 border-t border-gray-50">
+                                                    <span>🇺🇸</span> Eng
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -132,10 +140,9 @@ export default function Dashboard() {
                 </div>
                 {/* ----------------------------------------- */}
 
-                <div className="max-w-5xl mx-auto text-center text-white mb-8 mt-4">
-                    {/* Ganti Teks dengan t('key') */}
-                    <h1 className="text-3xl font-bold mb-2">{t('welcome')}</h1>
-                    <p className="opacity-90">{t('sub_welcome')}</p>
+                <div className="max-w-5xl mx-auto text-center text-white mb-8 mt-8 md:mt-4">
+                    <h1 className="text-3xl font-bold mb-2 leading-tight drop-shadow-md">{t('welcome')}</h1>
+                    <p className="opacity-90 text-sm md:text-base px-6">{t('sub_welcome')}</p>
                 </div>
 
                 <div className="max-w-5xl mx-auto bg-white rounded-2xl p-6 shadow-xl">
