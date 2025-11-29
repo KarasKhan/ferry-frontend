@@ -2,14 +2,25 @@ import { useState, useRef } from 'react'; // Hapus useEffect karena data ports s
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
-import { MapPin, Calendar, Search, Ship, ArrowRight, ArrowLeftRight } from 'lucide-react';
+import { MapPin, Calendar, Search, Ship, ArrowRight, ArrowLeftRight, ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next'; // <--- Import ini
 import { Globe } from 'lucide-react'; // <--- Import Icon Globe (Opsional)
 
 export default function Dashboard() {
-    const { t, i18n } = useTranslation(); // <--- Init fungsi translate
-    // Ambil user dan ports LANGSUNG dari Context (Data sudah siap berkat Splash Screen)
-    const { user, ports } = useAuth(); 
+    const { t, i18n } = useTranslation(); // Pastikan ini ada
+    const { user, ports } = useAuth();
+    
+    // STATE BARU: Untuk toggle menu bahasa
+    const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
+
+    // Helper: Mendapatkan Bendera Aktif
+    const getCurrentFlag = () => {
+        switch(i18n.language) {
+            case 'en': return '🇺🇸';
+            case 'my': return '🇲🇾';
+            default: return '🇮🇩';
+        }
+    };
     const navigate = useNavigate();
     
     // REF untuk Auto Scroll
@@ -80,15 +91,46 @@ export default function Dashboard() {
             {/* HERO SECTION */}
             <div className="bg-blue-600 px-4 pt-10 pb-32 rounded-b-[2.5rem] shadow-lg relative">
                 
-                {/* --- TOMBOL GANTI BAHASA (POJOK KANAN ATAS) --- */}
-                <div className="absolute top-4 right-4 z-20">
-                    <div className="bg-blue-700/50 backdrop-blur-md p-1 rounded-lg flex gap-1 border border-blue-500/30">
-                        <button onClick={() => i18n.changeLanguage('id')} className={`px-2 py-1 rounded text-lg transition-all ${i18n.language === 'id' ? 'bg-white shadow-sm' : 'opacity-50 hover:opacity-100'}`}>🇮🇩</button>
-                        <button onClick={() => i18n.changeLanguage('my')} className={`px-2 py-1 rounded text-lg transition-all ${i18n.language === 'my' ? 'bg-white shadow-sm' : 'opacity-50 hover:opacity-100'}`}>🇲🇾</button>
-                        <button onClick={() => i18n.changeLanguage('en')} className={`px-2 py-1 rounded text-lg transition-all ${i18n.language === 'en' ? 'bg-white shadow-sm' : 'opacity-50 hover:opacity-100'}`}>🇺🇸</button>
+                {/* --- MENU BAHASA (MODERN DROPDOWN) --- */}
+                <div className="absolute top-6 right-4 z-50">
+                    <div className="relative">
+                        {/* TOMBOL UTAMA (Bulat & Glassmorphism) */}
+                        <button 
+                            onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
+                            className="flex items-center gap-2 bg-white/20 backdrop-blur-md border border-white/30 text-white px-3 py-2 rounded-full shadow-lg hover:bg-white/30 transition-all active:scale-95"
+                        >
+                            <span className="text-xl">{getCurrentFlag()}</span>
+                            <ChevronDown size={16} className={`transition-transform duration-300 ${isLangMenuOpen ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {/* MENU DROPDOWN (Muncul saat diklik) */}
+                        {isLangMenuOpen && (
+                            <div className="absolute right-0 mt-2 w-40 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                                <div className="py-1">
+                                    <button 
+                                        onClick={() => { i18n.changeLanguage('id'); setIsLangMenuOpen(false); }}
+                                        className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-3 transition-colors"
+                                    >
+                                        <span className="text-lg">🇮🇩</span> Indonesia
+                                    </button>
+                                    <button 
+                                        onClick={() => { i18n.changeLanguage('my'); setIsLangMenuOpen(false); }}
+                                        className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-3 transition-colors border-t border-gray-50"
+                                    >
+                                        <span className="text-lg">🇲🇾</span> Melayu
+                                    </button>
+                                    <button 
+                                        onClick={() => { i18n.changeLanguage('en'); setIsLangMenuOpen(false); }}
+                                        className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-3 transition-colors border-t border-gray-50"
+                                    >
+                                        <span className="text-lg">🇺🇸</span> English
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
-                {/* ----------------------------------------------- */}
+                {/* ----------------------------------------- */}
 
                 <div className="max-w-5xl mx-auto text-center text-white mb-8 mt-4">
                     {/* Ganti Teks dengan t('key') */}
