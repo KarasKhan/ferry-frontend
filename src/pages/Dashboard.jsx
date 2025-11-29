@@ -1,18 +1,17 @@
-import { useState, useEffect, useRef } from 'react'; // <--- Tambah useRef
+import { useState, useRef } from 'react'; // Hapus useEffect karena data ports sudah ada di Context
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import Navbar from '../components/Navbar'; // (Ini boleh dihapus jika sudah pakai layout, tapi dibiarkan aman)
 import api from '../services/api';
 import { MapPin, Calendar, Search, Ship, ArrowRight, ArrowLeftRight } from 'lucide-react';
 
 export default function Dashboard() {
-    const { user } = useAuth();
+    // Ambil user dan ports LANGSUNG dari Context (Data sudah siap berkat Splash Screen)
+    const { user, ports } = useAuth(); 
     const navigate = useNavigate();
     
     // REF untuk Auto Scroll
     const resultsRef = useRef(null); 
 
-    const [ports, setPorts] = useState([]);
     const [origin, setOrigin] = useState('');
     const [destination, setDestination] = useState('');
     const [date, setDate] = useState('');
@@ -25,22 +24,6 @@ export default function Dashboard() {
 
     const [selectedDeparture, setSelectedDeparture] = useState(null);
     const [selectedReturn, setSelectedReturn] = useState(null);
-
-    // State baru untuk loading pelabuhan
-    const [loadingPorts, setLoadingPorts] = useState(true); 
-
-    useEffect(() => {
-            setLoadingPorts(true); // Mulai loading
-            api.get('/ports')
-                .then(res => {
-                    setPorts(res.data.data);
-                })
-                .catch(err => console.error(err))
-                .finally(() => {
-                    // Beri sedikit jeda biar transisinya enak dilihat (opsional)
-                    setTimeout(() => setLoadingPorts(false), 500);
-                });
-        }, []);
 
     const handleSearch = async (e) => {
         e.preventDefault();
@@ -80,6 +63,7 @@ export default function Dashboard() {
         const selectedSchedules = [selectedDeparture];
         if (isRoundTrip && selectedReturn) selectedSchedules.push(selectedReturn);
 
+        // Logic Cegatan Satpam (Guest Mode)
         if (!user) {
             navigate('/profile', { state: { from: '/booking', schedules: selectedSchedules } });
         } else {
@@ -119,29 +103,22 @@ export default function Dashboard() {
                             <div className="relative group">
                                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 ml-1">Dari Pelabuhan</label>
                                 <div className="relative flex items-center">
-                                    <div className={`absolute left-4 ${loadingPorts ? 'text-gray-400 animate-spin' : 'text-blue-500'}`}>
-                                        {/* Ganti icon jadi Loader kalau loading, Ship kalau ready */}
-                                        {loadingPorts ? <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full"></div> : <Ship size={24} />}
+                                    <div className="absolute left-4 text-blue-500">
+                                        <Ship size={24} />
                                     </div>
                                     <select 
-                                        className={`w-full pl-12 pr-4 py-4 border-2 rounded-xl outline-none font-semibold transition-all appearance-none 
-                                            ${loadingPorts 
-                                                ? 'bg-gray-100 border-gray-100 text-gray-400 cursor-not-allowed' 
-                                                : 'bg-gray-50 border-transparent hover:bg-white hover:border-blue-100 focus:bg-white focus:border-blue-500 text-gray-700 cursor-pointer'
-                                            }`}
+                                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-transparent hover:bg-white hover:border-blue-100 focus:bg-white focus:border-blue-500 rounded-xl outline-none font-semibold text-gray-700 transition-all appearance-none cursor-pointer"
                                         value={origin} 
                                         onChange={(e) => setOrigin(e.target.value)} 
                                         required
-                                        disabled={loadingPorts} // <--- KUNCI: Matikan input saat loading
                                     >
-                                        <option value="">{loadingPorts ? "Memuat Data..." : "Pilih Asal"}</option>
+                                        <option value="">Pilih Asal</option>
+                                        {/* Render Ports dari Context */}
                                         {ports.map(p => <option key={p.id} value={p.id}>{p.name} ({p.code})</option>)}
                                     </select>
-                                    {!loadingPorts && (
-                                        <div className="absolute right-4 pointer-events-none text-gray-400">
-                                            <ArrowRight size={16} />
-                                        </div>
-                                    )}
+                                    <div className="absolute right-4 pointer-events-none text-gray-400">
+                                        <ArrowRight size={16} />
+                                    </div>
                                 </div>
                             </div>
 
@@ -154,28 +131,21 @@ export default function Dashboard() {
                             <div className="relative group">
                                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 ml-1">Ke Pelabuhan</label>
                                 <div className="relative flex items-center">
-                                    <div className={`absolute left-4 ${loadingPorts ? 'text-gray-400 animate-spin' : 'text-orange-500'}`}>
-                                        {loadingPorts ? <div className="w-5 h-5 border-2 border-gray-300 border-t-orange-500 rounded-full"></div> : <MapPin size={24} />}
+                                    <div className="absolute left-4 text-orange-500">
+                                        <MapPin size={24} />
                                     </div>
                                     <select 
-                                        className={`w-full pl-12 pr-4 py-4 border-2 rounded-xl outline-none font-semibold transition-all appearance-none 
-                                            ${loadingPorts 
-                                                ? 'bg-gray-100 border-gray-100 text-gray-400 cursor-not-allowed' 
-                                                : 'bg-gray-50 border-transparent hover:bg-white hover:border-orange-100 focus:bg-white focus:border-orange-500 text-gray-700 cursor-pointer'
-                                            }`}
+                                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-transparent hover:bg-white hover:border-orange-100 focus:bg-white focus:border-orange-500 rounded-xl outline-none font-semibold text-gray-700 transition-all appearance-none cursor-pointer"
                                         value={destination} 
                                         onChange={(e) => setDestination(e.target.value)} 
                                         required
-                                        disabled={loadingPorts}
                                     >
-                                        <option value="">{loadingPorts ? "Memuat Data..." : "Pilih Tujuan"}</option>
+                                        <option value="">Pilih Tujuan</option>
                                         {ports.map(p => <option key={p.id} value={p.id}>{p.name} ({p.code})</option>)}
                                     </select>
-                                    {!loadingPorts && (
-                                        <div className="absolute right-4 pointer-events-none text-gray-400">
-                                            <ArrowRight size={16} />
-                                        </div>
-                                    )}
+                                    <div className="absolute right-4 pointer-events-none text-gray-400">
+                                        <ArrowRight size={16} />
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -183,8 +153,6 @@ export default function Dashboard() {
                         {/* Area Tanggal (Dynamic Layout) */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 transition-all">
                             
-                            {/* Input Tanggal Pergi */}
-                            {/* Logic: Kalau RoundTrip mati, dia ambil 2 kolom (full). Kalau aktif, dia ambil 1 kolom. */}
                             <div className={`transition-all duration-300 ease-in-out ${isRoundTrip ? 'md:col-span-1' : 'md:col-span-2'}`}>
                                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 ml-1">Tanggal Pergi</label>
                                 <div className="relative flex items-center group">
@@ -201,8 +169,6 @@ export default function Dashboard() {
                                 </div>
                             </div>
                             
-                            {/* Input Tanggal Pulang */}
-                            {/* Logic: Hanya dirender kalau isRoundTrip = TRUE */}
                             {isRoundTrip && (
                                 <div className="animate-in fade-in slide-in-from-left-4 duration-300">
                                     <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 ml-1">Tanggal Pulang</label>
@@ -222,7 +188,6 @@ export default function Dashboard() {
                             )}
                         </div>
 
-                        {/* TOMBOL CARI DENGAN EFEK KENYAL (active:scale-95) */}
                         <button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-lg font-bold py-4 rounded-xl shadow-lg shadow-blue-200 transform transition-transform active:scale-95 duration-100 flex items-center justify-center gap-2">
                             <Search size={22} strokeWidth={3} />
                             Cari Jadwal Kapal
@@ -248,7 +213,6 @@ export default function Dashboard() {
                             <div 
                                 key={item.id} 
                                 onClick={() => setSelectedDeparture(item)}
-                                // Efek Kenyal saat pilih jadwal
                                 className={`bg-white p-4 rounded-xl shadow-md border-2 cursor-pointer transition-all transform active:scale-95 duration-100 ${selectedDeparture?.id === item.id ? 'border-blue-500 ring-2 ring-blue-100' : 'border-transparent hover:border-gray-200'}`}
                             >
                                 <div className="flex justify-between items-center">

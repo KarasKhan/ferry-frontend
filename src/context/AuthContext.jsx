@@ -1,23 +1,25 @@
 import { createContext, useState, useEffect, useContext } from 'react';
 import api from '../services/api';
-import SplashScreen from '../components/SplashScreen'; // Pastikan import ini ada
+import SplashScreen from '../components/SplashScreen';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(localStorage.getItem('token'));
+    
+    // STATE BARU: Simpan Ports di sini
+    const [ports, setPorts] = useState([]); 
+    
     const [loading, setLoading] = useState(true);
 
-    // Cek apakah user sudah login saat aplikasi dibuka pertama kali
     useEffect(() => {
-        const initAuth = async () => {
-            // 1. Buat Timer "Pura-pura" (Misal 2000ms = 2 detik)
-            // Ubah angka 2000 ini sesuai selera (1500 - 2500 itu ideal)
+        const initApp = async () => {
+            // 1. Timer Pura-pura (Agar Splash Screen tampil minimal 2 detik)
             const minimumDelay = new Promise(resolve => setTimeout(resolve, 2000));
 
-            // 2. Proses Cek User (Asli)
-            const checkUser = async () => {
+            // 2. Cek User (Auth)
+            const fetchUser = async () => {
                 if (token) {
                     try {
                         const response = await api.get('/user');
@@ -30,64 +32,62 @@ export const AuthProvider = ({ children }) => {
                 }
             };
 
-            // 3. Tunggu KEDUANYA selesai
-            // (Mana yang paling lama, itu yang ditunggu)
-            await Promise.all([minimumDelay, checkUser()]);
+            // 3. CURI START: Ambil Data Pelabuhan di sini!
+            const fetchPorts = async () => {
+                try {
+                    const response = await api.get('/ports');
+                    setPorts(response.data.data);
+                } catch (error) {
+                    console.error("Gagal ambil pelabuhan:", error);
+                    // Jangan matikan aplikasi kalau gagal, biarkan ports kosong dulu
+                }
+            };
 
-            // 4. Baru matikan loading
+            // JALANKAN SEMUA BERSAMAAN (PARALLEL)
+            await Promise.all([minimumDelay, fetchUser(), fetchPorts()]);
+
+            // SEMUA SELESAI -> BUKA APLIKASI
             setLoading(false);
         };
 
-        initAuth();
+        initApp();
     }, [token]);
 
-    // Fungsi Login
+    // ... (Login & Logout functions tetap sama) ...
     const login = async (email, password) => {
         try {
             const response = await api.post('/login', { email, password });
-            
-            // Simpan token & user
             const { token, data } = response.data;
             localStorage.setItem('token', token);
             setToken(token);
             setUser(data);
-            
             return { success: true };
         } catch (error) {
-            return { 
-                success: false, 
-                message: error.response?.data?.message || 'Login gagal' 
-            };
+            return { success: false, message: error.response?.data?.message || 'Login gagal' };
         }
     };
 
-    // Fungsi Logout
     const logout = async () => {
         try {
             await api.post('/logout');
-        } catch (error) {
-            console.error(error);
-        } finally {
+        } catch (error) { console.error(error); } 
+        finally {
             localStorage.removeItem('token');
             setToken(null);
             setUser(null);
         }
     };
 
-    // --- BAGIAN BARU (PENCEGAT) ---
-    // Jika masih loading, TAMPILKAN SPLASH SCREEN DULU
-    // Jangan render Provider/Halaman Utama sampai loading false.
     if (loading) {
         return <SplashScreen />;
     }
-    // -----------------------------
 
+    // Pass 'ports' ke value provider agar bisa dipakai di Dashboard
     return (
-        <AuthContext.Provider value={{ user, token, loading, login, logout }}>
+        <AuthContext.Provider value={{ user, token, ports, login, logout }}>
             {children}
         </AuthContext.Provider>
     );
 };
 
-// Custom Hook biar gampang dipanggil
 export const useAuth = () => useContext(AuthContext);
