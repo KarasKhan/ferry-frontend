@@ -1,14 +1,14 @@
-import { useState, useRef } from 'react'; // Hapus useEffect karena data ports sudah ada di Context
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { MapPin, Calendar, Search, Ship, ArrowRight, ArrowLeftRight, ChevronDown } from 'lucide-react';
-import { useTranslation } from 'react-i18next'; // <--- Import ini
-import { Globe } from 'lucide-react'; // <--- Import Icon Globe (Opsional)
+import { useTranslation } from 'react-i18next';
 
 export default function Dashboard() {
-    const { t, i18n } = useTranslation(); // Pastikan ini ada
+    const { t, i18n } = useTranslation();
     const { user, ports } = useAuth();
+    const navigate = useNavigate();
     
     // STATE BARU: Untuk toggle menu bahasa
     const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
@@ -21,7 +21,6 @@ export default function Dashboard() {
             default: return '🇮🇩';
         }
     };
-    const navigate = useNavigate();
     
     // REF untuk Auto Scroll
     const resultsRef = useRef(null); 
@@ -57,8 +56,6 @@ export default function Dashboard() {
             const response = await api.get('/schedules', { params });
             setSchedules(response.data.data);
 
-            // --- AUTO SCROLL LOGIC ---
-            // Tunggu sebentar (100ms) agar elemen dirender dulu, baru scroll
             setTimeout(() => {
                 resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100);
@@ -77,7 +74,6 @@ export default function Dashboard() {
         const selectedSchedules = [selectedDeparture];
         if (isRoundTrip && selectedReturn) selectedSchedules.push(selectedReturn);
 
-        // Logic Cegatan Satpam (Guest Mode)
         if (!user) {
             navigate('/profile', { state: { from: '/booking', schedules: selectedSchedules } });
         } else {
@@ -91,54 +87,35 @@ export default function Dashboard() {
             {/* HERO SECTION */}
             <div className="bg-blue-600 px-4 pt-10 pb-32 rounded-b-[2.5rem] shadow-lg relative">
                 
-                {/* --- MENU BAHASA (MODERN DROPDOWN) --- */}
-                <div className="absolute top-6 right-4 z-50">
+                {/* --- MENU BAHASA (MINIMALIST GLASS PILL) --- */}
+                <div className="absolute top-5 right-5 z-50">
                     <div className="relative">
-                        {/* TOMBOL UTAMA (Bulat & Glassmorphism) */}
                         <button 
                             onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
-                            className="flex items-center gap-2 bg-white/20 backdrop-blur-md border border-white/30 text-white px-3 py-2 rounded-full shadow-lg hover:bg-white/30 transition-all active:scale-95"
+                            className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 py-1.5 rounded-full shadow-sm transition-all active:scale-95"
                         >
-                            <span className="text-xl">{getCurrentFlag()}</span>
-                            <ChevronDown size={16} className={`transition-transform duration-300 ${isLangMenuOpen ? 'rotate-180' : ''}`} />
+                            <span className="text-lg leading-none filter drop-shadow-sm">{getCurrentFlag()}</span>
+                            <ChevronDown size={14} className={`opacity-80 transition-transform duration-300 ${isLangMenuOpen ? 'rotate-180' : ''}`} />
                         </button>
 
-                        {/* MENU DROPDOWN (Muncul saat diklik) */}
                         {isLangMenuOpen && (
-                            <div className="absolute top-5 right-5 z-50">
-                                <div className="relative">
-                                    {/* Tombol Lebih Kecil & Tanpa Border Tebal */}
-                                    <button 
-                                        onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
-                                        className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-3 py-1.5 rounded-full shadow-sm transition-all active:scale-95"
-                                    >
-                                        <span className="text-lg leading-none filter drop-shadow-sm">{getCurrentFlag()}</span>
-                                        {/* Panah lebih kecil & transparan */}
-                                        <ChevronDown size={14} className={`opacity-80 transition-transform duration-300 ${isLangMenuOpen ? 'rotate-180' : ''}`} />
+                            <div className="absolute right-0 mt-2 w-32 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                                <div className="py-1">
+                                    <button onClick={() => { i18n.changeLanguage('id'); setIsLangMenuOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center gap-2">
+                                        <span>🇮🇩</span> Indo
                                     </button>
-
-                                    {/* Menu Dropdown (Tetap sama, cuma posisi dirapikan dikit) */}
-                                    {isLangMenuOpen && (
-                                        <div className="absolute right-0 mt-2 w-32 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                                            <div className="py-1">
-                                                <button onClick={() => { i18n.changeLanguage('id'); setIsLangMenuOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center gap-2">
-                                                    <span>🇮🇩</span> Indo
-                                                </button>
-                                                <button onClick={() => { i18n.changeLanguage('my'); setIsLangMenuOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center gap-2 border-t border-gray-50">
-                                                    <span>🇲🇾</span> Malay
-                                                </button>
-                                                <button onClick={() => { i18n.changeLanguage('en'); setIsLangMenuOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center gap-2 border-t border-gray-50">
-                                                    <span>🇺🇸</span> Eng
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )}
+                                    <button onClick={() => { i18n.changeLanguage('my'); setIsLangMenuOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center gap-2 border-t border-gray-50">
+                                        <span>🇲🇾</span> Malay
+                                    </button>
+                                    <button onClick={() => { i18n.changeLanguage('en'); setIsLangMenuOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 flex items-center gap-2 border-t border-gray-50">
+                                        <span>🇺🇸</span> Eng
+                                    </button>
                                 </div>
                             </div>
                         )}
                     </div>
                 </div>
-                {/* ----------------------------------------- */}
+                {/* ----------------------------------------------- */}
 
                 <div className="max-w-5xl mx-auto text-center text-white mb-8 mt-8 md:mt-4">
                     <h1 className="text-3xl font-bold mb-2 leading-tight drop-shadow-md">{t('welcome')}</h1>
