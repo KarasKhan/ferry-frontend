@@ -4,20 +4,21 @@ import { Ticket, User, Search } from 'lucide-react';
 export default function BottomNav() {
     const location = useLocation();
     
-    // Fungsi cek aktif
+    // Fungsi cek menu aktif
     const isActive = (path) => location.pathname === path;
 
-    // --- LOGIKA BARU: MENCEGAH TUMPUKAN HISTORY ---
+    // --- LOGIKA BARU: CEGAH TUMPUKAN HISTORY ---
     const handleClick = (e, path) => {
-        // Jika kita sudah berada di halaman tersebut, MATIKAN fungsi kliknya
+        // Jika kita sudah berada di halaman tersebut
         if (location.pathname === path) {
-            e.preventDefault(); // Jangan pindah halaman (karena sudah di situ)
-            window.scrollTo({ top: 0, behavior: 'smooth' }); // Opsional: Scroll ke atas aja
+            e.preventDefault(); // Batalkan navigasi (JANGAN PUSH HISTORY BARU)
+            window.scrollTo({ top: 0, behavior: 'smooth' }); // Opsional: Scroll ke paling atas aja
         }
     };
 
     return (
         <div className="fixed bottom-0 left-0 right-0 z-50">
+            {/* Background Blur */}
             <div className="absolute inset-0 bg-gradient-to-t from-white via-white to-transparent h-24 pointer-events-none"></div>
 
             <div className="bg-white border-t border-gray-200 pb-safe pt-2 px-6 shadow-[0_-5px_20px_rgba(0,0,0,0.05)] relative">
