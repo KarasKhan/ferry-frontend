@@ -26,9 +26,21 @@ export default function Dashboard() {
     const [selectedDeparture, setSelectedDeparture] = useState(null);
     const [selectedReturn, setSelectedReturn] = useState(null);
 
+    // State baru untuk loading pelabuhan
+    const [loadingPorts, setLoadingPorts] = useState(true); 
+
     useEffect(() => {
-        api.get('/ports').then(res => setPorts(res.data.data));
-    }, []);
+            setLoadingPorts(true); // Mulai loading
+            api.get('/ports')
+                .then(res => {
+                    setPorts(res.data.data);
+                })
+                .catch(err => console.error(err))
+                .finally(() => {
+                    // Beri sedikit jeda biar transisinya enak dilihat (opsional)
+                    setTimeout(() => setLoadingPorts(false), 500);
+                });
+        }, []);
 
     const handleSearch = async (e) => {
         e.preventDefault();
@@ -100,28 +112,70 @@ export default function Dashboard() {
                             </label>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative">
+                        {/* Area Input Utama (Asal & Tujuan) */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4 relative">
+                            
+                            {/* Input Asal */}
                             <div className="relative group">
                                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 ml-1">Dari Pelabuhan</label>
                                 <div className="relative flex items-center">
-                                    <div className="absolute left-4 text-blue-500"><Ship size={24} /></div>
-                                    <select className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-transparent hover:bg-white hover:border-blue-100 focus:bg-white focus:border-blue-500 rounded-xl outline-none font-semibold text-gray-700 transition-all appearance-none cursor-pointer" value={origin} onChange={(e) => setOrigin(e.target.value)} required>
-                                        <option value="">Pilih Asal</option>
+                                    <div className={`absolute left-4 ${loadingPorts ? 'text-gray-400 animate-spin' : 'text-blue-500'}`}>
+                                        {/* Ganti icon jadi Loader kalau loading, Ship kalau ready */}
+                                        {loadingPorts ? <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full"></div> : <Ship size={24} />}
+                                    </div>
+                                    <select 
+                                        className={`w-full pl-12 pr-4 py-4 border-2 rounded-xl outline-none font-semibold transition-all appearance-none 
+                                            ${loadingPorts 
+                                                ? 'bg-gray-100 border-gray-100 text-gray-400 cursor-not-allowed' 
+                                                : 'bg-gray-50 border-transparent hover:bg-white hover:border-blue-100 focus:bg-white focus:border-blue-500 text-gray-700 cursor-pointer'
+                                            }`}
+                                        value={origin} 
+                                        onChange={(e) => setOrigin(e.target.value)} 
+                                        required
+                                        disabled={loadingPorts} // <--- KUNCI: Matikan input saat loading
+                                    >
+                                        <option value="">{loadingPorts ? "Memuat Data..." : "Pilih Asal"}</option>
                                         {ports.map(p => <option key={p.id} value={p.id}>{p.name} ({p.code})</option>)}
                                     </select>
-                                    <div className="absolute right-4 pointer-events-none text-gray-400"><ArrowRight size={16} /></div>
+                                    {!loadingPorts && (
+                                        <div className="absolute right-4 pointer-events-none text-gray-400">
+                                            <ArrowRight size={16} />
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
+                            {/* Icon Panah Tengah (Hiasan Desktop) */}
+                            <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 bg-white border border-gray-100 p-2 rounded-full shadow-md text-gray-400">
+                                <ArrowRight size={20} />
+                            </div>
+
+                            {/* Input Tujuan */}
                             <div className="relative group">
                                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 ml-1">Ke Pelabuhan</label>
                                 <div className="relative flex items-center">
-                                    <div className="absolute left-4 text-orange-500"><MapPin size={24} /></div>
-                                    <select className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-transparent hover:bg-white hover:border-orange-100 focus:bg-white focus:border-orange-500 rounded-xl outline-none font-semibold text-gray-700 transition-all appearance-none cursor-pointer" value={destination} onChange={(e) => setDestination(e.target.value)} required>
-                                        <option value="">Pilih Tujuan</option>
+                                    <div className={`absolute left-4 ${loadingPorts ? 'text-gray-400 animate-spin' : 'text-orange-500'}`}>
+                                        {loadingPorts ? <div className="w-5 h-5 border-2 border-gray-300 border-t-orange-500 rounded-full"></div> : <MapPin size={24} />}
+                                    </div>
+                                    <select 
+                                        className={`w-full pl-12 pr-4 py-4 border-2 rounded-xl outline-none font-semibold transition-all appearance-none 
+                                            ${loadingPorts 
+                                                ? 'bg-gray-100 border-gray-100 text-gray-400 cursor-not-allowed' 
+                                                : 'bg-gray-50 border-transparent hover:bg-white hover:border-orange-100 focus:bg-white focus:border-orange-500 text-gray-700 cursor-pointer'
+                                            }`}
+                                        value={destination} 
+                                        onChange={(e) => setDestination(e.target.value)} 
+                                        required
+                                        disabled={loadingPorts}
+                                    >
+                                        <option value="">{loadingPorts ? "Memuat Data..." : "Pilih Tujuan"}</option>
                                         {ports.map(p => <option key={p.id} value={p.id}>{p.name} ({p.code})</option>)}
                                     </select>
-                                    <div className="absolute right-4 pointer-events-none text-gray-400"><ArrowRight size={16} /></div>
+                                    {!loadingPorts && (
+                                        <div className="absolute right-4 pointer-events-none text-gray-400">
+                                            <ArrowRight size={16} />
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

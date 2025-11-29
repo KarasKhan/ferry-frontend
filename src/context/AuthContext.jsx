@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect, useContext } from 'react';
 import api from '../services/api';
+import SplashScreen from '../components/SplashScreen'; // Pastikan import ini ada
 
 const AuthContext = createContext();
 
@@ -23,6 +24,7 @@ export const AuthProvider = ({ children }) => {
                     setUser(null);
                 }
             }
+            // Selesai cek, matikan loading
             setLoading(false);
         };
 
@@ -61,6 +63,14 @@ export const AuthProvider = ({ children }) => {
             setUser(null);
         }
     };
+
+    // --- BAGIAN BARU (PENCEGAT) ---
+    // Jika masih loading, TAMPILKAN SPLASH SCREEN DULU
+    // Jangan render Provider/Halaman Utama sampai loading false.
+    if (loading) {
+        return <SplashScreen />;
+    }
+    // -----------------------------
 
     return (
         <AuthContext.Provider value={{ user, token, loading, login, logout }}>
