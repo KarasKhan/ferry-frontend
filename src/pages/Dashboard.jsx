@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 // import Navbar from '../components/Navbar';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { MapPin, Calendar, Search, Ship, ArrowRight, ArrowLeftRight } from 'lucide-react';
 
 export default function Dashboard() {
+    const { user } = useAuth();
     const navigate = useNavigate();
     
     // State Form
@@ -58,20 +60,29 @@ export default function Dashboard() {
         }
     };
 
-    // Fungsi lanjut ke Booking
     const proceedToBooking = () => {
-        // Validasi
         if (!selectedDeparture) return alert("Pilih jadwal keberangkatan dulu!");
         if (isRoundTrip && !selectedReturn) return alert("Pilih jadwal kepulangan dulu!");
 
-        // Gabungkan jadwal jadi array
         const selectedSchedules = [selectedDeparture];
         if (isRoundTrip && selectedReturn) {
             selectedSchedules.push(selectedReturn);
         }
 
-        // Lempar ke halaman Booking
-        navigate('/booking', { state: { schedules: selectedSchedules } });
+        // --- CEGATAN LOGIN ---
+        if (!user) {
+            // Jika Guest: Lempar ke Login (Profile), tapi TITIPKAN data jadwal di 'state'
+            // Kita arahkan ke '/profile' karena di sana sekarang ada Form Login
+            navigate('/profile', { 
+                state: { 
+                    from: '/booking', 
+                    schedules: selectedSchedules 
+                } 
+            });
+        } else {
+            // Jika User: Langsung ke Booking
+            navigate('/booking', { state: { schedules: selectedSchedules } });
+        }
     };
 
     return (

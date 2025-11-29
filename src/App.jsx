@@ -43,23 +43,37 @@ function App() {
     <Router>
       <AuthProvider>
         <Routes>
-          {/* Halaman Login */}
+          
+          {/* Halaman Login Khusus (Redirect) */}
           <Route path="/login" element={
             <GuestRoute>
               <Login />
             </GuestRoute>
           } />
 
-          {/* HALAMAN UTAMA (DENGAN MENU BAWAH) */}
-          <Route element={
-              <ProtectedRoute>
-                 <AppLayout />
-              </ProtectedRoute>
-          }>
+          {/* HALAMAN UTAMA (AppLayout) */}
+          <Route element={<AppLayout />}> {/* <--- HAPUS ProtectedRoute DI SINI */}
+              
+              {/* Dashboard: PUBLIC (Semua bisa akses) */}
               <Route path="/" element={<Dashboard />} />
-              <Route path="/my-bookings" element={<MyBookings />} />
+              
+              {/* Profile: PUBLIC (Isinya adaptif: Form Login / Data Diri) */}
               <Route path="/profile" element={<Profile />} />
-              <Route path="/booking" element={<Booking />} />
+
+              {/* MyBookings: PROTECTED (Hanya User Login) */}
+              <Route path="/my-bookings" element={
+                  <ProtectedRoute>
+                      <MyBookings />
+                  </ProtectedRoute>
+              } />
+              
+              {/* Booking: PROTECTED (Hanya User Login) */}
+              <Route path="/booking" element={
+                  <ProtectedRoute>
+                      <Booking />
+                  </ProtectedRoute>
+              } />
+
           </Route>
           
         </Routes>
