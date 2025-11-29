@@ -22,11 +22,19 @@ const AppLayout = () => {
   );
 };
 
-// Proteksi Halaman
+// Proteksi Halaman (Wajib Login)
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
+  const location = useLocation(); // <--- Ambil lokasi saat ini
+
   if (loading) return <div className="p-10 text-center">Loading...</div>;
-  if (!user) return <Navigate to="/login" />;
+  
+  if (!user) {
+      // replace={true} adalah KUNCINYA. 
+      // Ini menghapus jejak halaman terlarang dari history browser.
+      return <Navigate to="/profile" state={{ from: location.pathname }} replace />;
+  }
+
   return children;
 };
 
