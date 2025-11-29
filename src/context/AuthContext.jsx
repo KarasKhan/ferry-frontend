@@ -11,24 +11,34 @@ export const AuthProvider = ({ children }) => {
 
     // Cek apakah user sudah login saat aplikasi dibuka pertama kali
     useEffect(() => {
-        const checkUserLoggedIn = async () => {
-            if (token) {
-                try {
-                    // Cek ke validitas token ke server
-                    const response = await api.get('/user');
-                    setUser(response.data);
-                } catch (error) {
-                    // Jika token kadaluwarsa/salah, hapus
-                    localStorage.removeItem('token');
-                    setToken(null);
-                    setUser(null);
+        const initAuth = async () => {
+            // 1. Buat Timer "Pura-pura" (Misal 2000ms = 2 detik)
+            // Ubah angka 2000 ini sesuai selera (1500 - 2500 itu ideal)
+            const minimumDelay = new Promise(resolve => setTimeout(resolve, 2000));
+
+            // 2. Proses Cek User (Asli)
+            const checkUser = async () => {
+                if (token) {
+                    try {
+                        const response = await api.get('/user');
+                        setUser(response.data);
+                    } catch (error) {
+                        localStorage.removeItem('token');
+                        setToken(null);
+                        setUser(null);
+                    }
                 }
-            }
-            // Selesai cek, matikan loading
+            };
+
+            // 3. Tunggu KEDUANYA selesai
+            // (Mana yang paling lama, itu yang ditunggu)
+            await Promise.all([minimumDelay, checkUser()]);
+
+            // 4. Baru matikan loading
             setLoading(false);
         };
 
-        checkUserLoggedIn();
+        initAuth();
     }, [token]);
 
     // Fungsi Login
