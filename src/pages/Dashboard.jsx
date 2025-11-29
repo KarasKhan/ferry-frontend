@@ -198,61 +198,120 @@ export default function Dashboard() {
             </div>
 
             {/* HASIL PENCARIAN */}
-            <div ref={resultsRef} className="max-w-6xl mx-auto px-4 -mt-10 grid grid-cols-1 lg:grid-cols-2 gap-8 scroll-mt-24">
+            <div ref={resultsRef} className="max-w-6xl mx-auto px-4 -mt-10 grid grid-cols-1 lg:grid-cols-2 gap-8 scroll-mt-24 relative z-10">
                 
                 {(hasSearched || loading) && (
                     <div className="space-y-4">
-                        <h3 className="font-bold text-gray-700 flex items-center gap-2 bg-white p-3 rounded-lg shadow-sm">
-                            <ArrowRight className="text-blue-600" /> {t('ready_go')}
-                        </h3>
                         
-                        {loading ? <p className="text-center">{t('loading_ports')}</p> : 
-                         schedules.departures.length === 0 ? <p className="text-center text-gray-500 py-10 bg-white rounded-lg">Tidak ada jadwal.</p> :
-                         schedules.departures.map(item => (
-                            <div key={item.id} onClick={() => setSelectedDeparture(item)} className={`bg-white p-4 rounded-xl shadow-md border-2 cursor-pointer transition-all transform active:scale-95 duration-100 ${selectedDeparture?.id === item.id ? 'border-blue-500 ring-2 ring-blue-100' : 'border-transparent hover:border-gray-200'}`}>
-                                <div className="flex justify-between items-center">
-                                    <div className="flex items-center gap-3">
-                                        <div className="h-10 w-10 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600"><Ship size={20} /></div>
-                                        <div>
-                                            <h4 className="font-bold">{item.ship.name}</h4>
-                                            <p className="text-xs text-gray-500">{new Date(item.departure_time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} WIB</p>
+                        {/* --- INI JUDUL YANG KEMARIN HILANG --- */}
+                        <h3 className="font-bold text-gray-800 flex items-center gap-2 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                            <div className="p-1.5 bg-blue-100 rounded-full text-blue-600">
+                                <ArrowRight size={18} strokeWidth={3} /> 
+                            </div>
+                            {t('ready_go')}
+                        </h3>
+                        {/* ----------------------------------- */}
+                        
+                        {loading ? (
+                            // Skeleton Loading sederhana biar gak kaget
+                            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-pulse">
+                                <div className="h-4 bg-gray-200 rounded w-1/3 mb-4"></div>
+                                <div className="h-10 bg-gray-200 rounded w-full"></div>
+                            </div>
+                        ) : schedules.departures.length === 0 ? (
+                            <div className="text-center text-gray-500 py-10 bg-white rounded-xl shadow-sm border border-gray-100">
+                                <p>Tidak ada jadwal tersedia.</p>
+                            </div>
+                        ) : (
+                            schedules.departures.map(item => (
+                                <div 
+                                    key={item.id} 
+                                    onClick={() => setSelectedDeparture(item)}
+                                    className={`bg-white p-5 rounded-xl shadow-sm border-2 cursor-pointer transition-all transform active:scale-95 duration-100 ${selectedDeparture?.id === item.id ? 'border-blue-500 ring-4 ring-blue-50/50' : 'border-transparent hover:border-blue-100'}`}
+                                >
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex items-center gap-4">
+                                            <div className="h-12 w-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+                                                <Ship size={24} />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-gray-800 text-lg">{item.ship.name}</h4>
+                                                <div className="flex items-center gap-2 text-sm text-gray-500 mt-0.5">
+                                                    <span className="font-mono bg-gray-100 px-1.5 rounded">{new Date(item.departure_time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                                                    <span>WIB</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${item.quota_passenger_left > 10 ? 'text-green-600' : 'text-red-500'}`}>
+                                                {t('seats')} {item.quota_passenger_left}
+                                            </p>
+                                            {selectedDeparture?.id === item.id && (
+                                                <span className="inline-block bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">
+                                                    {t('selected')}
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-sm font-bold text-green-600">{t('seats')} {item.quota_passenger_left}</p>
-                                        {selectedDeparture?.id === item.id && <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded">{t('selected')}</span>}
-                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))
+                        )}
                     </div>
                 )}
 
                 {isRoundTrip && (hasSearched || loading) && (
                     <div className="space-y-4">
-                        <h3 className="font-bold text-gray-700 flex items-center gap-2 bg-white p-3 rounded-lg shadow-sm">
-                            <ArrowLeftRight className="text-orange-600" /> {t('ready_back')}
+                        {/* HEADER PULANG */}
+                        <h3 className="font-bold text-gray-800 flex items-center gap-2 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                            <div className="p-1.5 bg-orange-100 rounded-full text-orange-600">
+                                <ArrowLeftRight size={18} strokeWidth={3} /> 
+                            </div>
+                            {t('ready_back')}
                         </h3>
 
-                        {loading ? <p className="text-center">{t('loading_ports')}</p> : 
-                         schedules.returns.length === 0 ? <p className="text-center text-gray-500 py-10 bg-white rounded-lg">Tidak ada jadwal pulang.</p> :
-                         schedules.returns.map(item => (
-                            <div key={item.id} onClick={() => setSelectedReturn(item)} className={`bg-white p-4 rounded-xl shadow-md border-2 cursor-pointer transition-all transform active:scale-95 duration-100 ${selectedReturn?.id === item.id ? 'border-orange-500 ring-2 ring-orange-100' : 'border-transparent hover:border-gray-200'}`}>
-                                <div className="flex justify-between items-center">
-                                    <div className="flex items-center gap-3">
-                                        <div className="h-10 w-10 bg-orange-50 rounded-lg flex items-center justify-center text-orange-600"><Ship size={20} /></div>
-                                        <div>
-                                            <h4 className="font-bold">{item.ship.name}</h4>
-                                            <p className="text-xs text-gray-500">{new Date(item.departure_time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} WIB</p>
+                        {loading ? (
+                             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-pulse">
+                                <div className="h-4 bg-gray-200 rounded w-1/3 mb-4"></div>
+                                <div className="h-10 bg-gray-200 rounded w-full"></div>
+                            </div>
+                        ) : schedules.returns.length === 0 ? (
+                            <div className="text-center text-gray-500 py-10 bg-white rounded-xl shadow-sm border border-gray-100">
+                                <p>Tidak ada jadwal pulang.</p>
+                            </div>
+                        ) : (
+                            schedules.returns.map(item => (
+                                <div 
+                                    key={item.id} 
+                                    onClick={() => setSelectedReturn(item)}
+                                    className={`bg-white p-5 rounded-xl shadow-sm border-2 cursor-pointer transition-all transform active:scale-95 duration-100 ${selectedReturn?.id === item.id ? 'border-orange-500 ring-4 ring-orange-50/50' : 'border-transparent hover:border-orange-100'}`}
+                                >
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex items-center gap-4">
+                                            <div className="h-12 w-12 bg-orange-50 rounded-xl flex items-center justify-center text-orange-600">
+                                                <Ship size={24} />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-gray-800 text-lg">{item.ship.name}</h4>
+                                                <div className="flex items-center gap-2 text-sm text-gray-500 mt-0.5">
+                                                    <span className="font-mono bg-gray-100 px-1.5 rounded">{new Date(item.departure_time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                                                    <span>WIB</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${item.quota_passenger_left > 10 ? 'text-green-600' : 'text-red-500'}`}>
+                                                {t('seats')} {item.quota_passenger_left}
+                                            </p>
+                                            {selectedReturn?.id === item.id && (
+                                                <span className="inline-block bg-orange-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">
+                                                    {t('selected')}
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-sm font-bold text-green-600">{t('seats')} {item.quota_passenger_left}</p>
-                                        {selectedReturn?.id === item.id && <span className="text-xs bg-orange-600 text-white px-2 py-0.5 rounded">{t('selected')}</span>}
-                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))
+                        )}
                     </div>
                 )}
             </div>
