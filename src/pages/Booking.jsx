@@ -4,7 +4,11 @@ import api from '../services/api';
 // Tambahkan ArrowLeft di import
 import { User, CreditCard, Trash2, PlusCircle, Ship, Calendar, MapPin, Ticket, ChevronDown, Info, ArrowLeft } from 'lucide-react';
 
+import { formatCurrency } from '../utils/currency';
+import { useTranslation } from 'react-i18next'; // Kita butuh ini buat cek bahasa aktif
+
 export default function Booking() {
+    const { i18n } = useTranslation();
     const { state } = useLocation(); 
     const navigate = useNavigate();
     
@@ -173,7 +177,7 @@ export default function Booking() {
                                                     <option value="" className="text-gray-400">Pilih Kategori Tiket</option>
                                                     {referencePricings.map(price => (
                                                         <option key={price.id} value={price.category_id} className="text-gray-800">
-                                                            {price.category.name} — Rp {Number(price.price).toLocaleString('id-ID')}
+                                                            {price.category.name} — {formatCurrency(price.price)}
                                                         </option>
                                                     ))}
                                                 </select>
@@ -232,7 +236,17 @@ export default function Booking() {
                                 </div>
                                 <div className="flex justify-between items-center text-xl font-bold text-blue-600 mt-4">
                                     <span>Total Bayar</span>
-                                    <span>Rp {calculateTotal().toLocaleString('id-ID')}</span>
+                                    <div className="text-right">
+                                        {/* Tampilkan Harga sesuai Mata Uang Bahasa */}
+                                        <span>{formatCurrency(calculateTotal())}</span>
+                                        
+                                        {/* Jika BUKAN Bahasa Indo, kasih info kecil bahwa charge tetap IDR */}
+                                        {i18n.language !== 'id' && (
+                                            <p className="text-[10px] text-gray-400 font-normal mt-1">
+                                                Processed in IDR (Rp {calculateTotal().toLocaleString('id-ID')})
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 
